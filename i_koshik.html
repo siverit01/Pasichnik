@@ -1,0 +1,148 @@
+﻿<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Кошик замовлень</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f6f9; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; background: white; padding: 5px 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+    .cart-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; margin-bottom: 10px; background: white; border: 1px solid #ddd; border-radius: 5px; }
+    .controls { display: flex; align-items: center; gap: 10px; }
+    .btn-qty { width: 30px; height: 30px; cursor: pointer; font-size: 18px; font-weight: bold; border: 1px solid #ccc; background: #eee; border-radius: 3px; }
+    .btn-qty:hover { background: #ddd; }
+    .total-section { margin-top: 20px; font-size: 18px; font-weight: bold; text-align: right; }
+    .actions { margin-top: 20px; display: flex; gap: 15px; justify-content: flex-end; }
+    .btn-action { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; text-decoration: none; color: white; text-align: center; }
+    .btn-back { background-color: #6c757d; }
+    .btn-buy { background-color: #28a745; }
+    .btn-action:hover { opacity: 0.9; }
+    </style>
+  </head>
+
+<body>
+<div class="container">
+  <h1>Ваш кошик</h1>
+  <div id="cart-container"></div>
+  <div class="total-section">
+    Загальна вартість: <span id="total-price">0</span> грн
+    </div>
+  <div class="actions">
+    <a id="btn-back" class="btn-action btn-back" href="#">ПОВЕРНУТИСЯ</a>
+    <a id="btn-buy" class="btn-action btn-buy" href="#">КУПИТИ</a>
+    </div>
+  </div>
+
+<script>
+  const productsDatabase = [
+            
+//  100 Мед
+{ id: "101", price: 100, name: "Мед різнотрав'я 0,5л" },
+{ id: "102", price: 120, name: "Мед липовий 0,5л" },
+{ id: "103", price: 150, name: "Мед гречаний 0,5л" },
+{ id: "104", price:  90, name: "Мед соняшниковий 0,5л" },
+{ id: "105", price: 120, name: "Крем-мед 0,5л" },
+{ id: "106", price: 150, name: "Мед 'три в одному' 0,5л" },
+{ id: "107", price: 200, name: "Мед у стільниках 0,5л" },
+
+//  200 Пилок
+{ id: "201", price:  50, name: "Пилок 50гр" },
+{ id: "202", price: 100, name: "Пилок 100гр" },
+
+//  300 Прополіс
+{ id: "301", price: 100, name: "Прополіс 10гр" },
+{ id: "302", price:  50, name: "Настоянка прополіса 100мл" },
+
+//  400 Медовуха
+{ id: "401", price: 100, name: "Вино медовуха 0,5л" },
+
+//  500 Віск
+{ id: "501", price: 120, name: "Свічка Сова" },
+{ id: "502", price: 100, name: "Свічка Ангел" }
+
+  ];
+// 1. Отримуємо параметри ids та qtys з URL
+const urlParams = new URLSearchParams(window.location.search);
+const idsParam = urlParams.get('ids') || '';
+const qtysParam = urlParams.get('qtys') || ''; // Приймаємо масив кількостей
+
+const orderedIds = idsParam ? idsParam.split(',') : [];
+const orderedQtys = qtysParam ? qtysParam.split(',') : [];
+
+// 2. Фільтруємо базу даних та зв'язуємо товар із його збереженою кількістю
+let cartItems = productsDatabase
+    .filter(product => orderedIds.includes(product.id))
+    .map(product => {
+        // Знаходимо, на якій позиції цей товар був у списку замовлення
+        const indexInOrder = orderedIds.indexOf(product.id);
+        // Дістаємо збережену кількість за цим самим індексом
+        const savedQty = orderedQtys[indexInOrder] ? parseInt(orderedQtys[indexInOrder], 10) : 1;
+        return { ...product, quantity: isNaN(savedQty) || savedQty < 1 ? 1 : savedQty };
+    });
+
+  // 3. Функція для рендерингу (відображення) сторінки
+  function renderCart() {
+    const container = document.getElementById('cart-container');
+    container.innerHTML = '';
+    if (cartItems.length === 0) {
+      container.innerHTML = '<p>Кошик порожній або товари не знайдені.</p>';
+      document.getElementById('total-price').innerText = '0';
+      updateActionButtons();
+      return;
+      }
+    let totalPrice = 0;
+    cartItems.forEach((item, index) => {
+      const itemTotal = item.price * item.quantity;
+      totalPrice += itemTotal;
+      const itemHtml = `
+        <div class="cart-item">
+          <div>
+            <strong>${item.name}</strong> <small>(Код: ${item.id})</small> — ${item.price} грн/шт.
+            </div>
+          <div class="controls">
+            <button class="btn-qty" onclick="changeQuantity(${index}, -1)">-</button>
+            <span>${item.quantity}</span>
+            <button class="btn-qty" onclick="changeQuantity(${index}, 1)">+</button>
+            <span style="margin-left: 15px; font-weight: bold;">${itemTotal} грн</span>
+            </div>
+          </div>
+        `;
+      container.insertAdjacentHTML('beforeend', itemHtml);
+      });
+    document.getElementById('total-price').innerText = totalPrice;
+    updateActionButtons();
+    }
+
+  // 4. Функція зміни кількості товарів (- / +)
+  window.changeQuantity = function(index, delta) {
+    cartItems[index].quantity += delta;
+    // Якщо кількість менша за 1, видаляємо товар з кошика
+    if (cartItems[index].quantity < 1) {
+      cartItems.splice(index, 1);
+      }
+    renderCart();
+    };
+
+  // 5. Оновлення динамічних посилань для кнопок КУПИТИ та ПОВЕРНУТИСЯ
+  function updateActionButtons() {
+    // Кнопка ПОВЕРНУТИСЯ: збирає поточні ID товарів, що залишилися в кошику
+    const currentIds = cartItems.map(item => item.id).join(',');
+    document.getElementById('btn-back').href = `index.html?ids=${currentIds}`;
+    // Кнопка КУПИТИ: формує складні параметри для кожного товару
+    // Формат: i_kyputu.html?id=101&name=...&qty=1&price=100&id=203...
+    let buyQuery = [];
+    cartItems.forEach((item, i) => {
+      buyQuery.push(`id[${i}]=${encodeURIComponent(item.id)}`);
+      buyQuery.push(`name[${i}]=${encodeURIComponent(item.name)}`);
+      buyQuery.push(`qty[${i}]=${item.quantity}`);
+      buyQuery.push(`price[${i}]=${item.price * item.quantity}`);
+      });
+    const total = document.getElementById('total-price').innerText;
+    buyQuery.push(`total=${total}`);
+    document.getElementById('btn-buy').href = `i_kyputu.html?${buyQuery.join('&')}`;
+    }
+  // Перший запуск при завантаженні сторінки
+  renderCart();
+  </script>
+</body>
+</html>

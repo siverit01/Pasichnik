@@ -1,0 +1,82 @@
+﻿html, body {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; 
+  flex-direction: column;
+  font-weight: bold;
+  }
+.header {
+  display: flex;        
+  margin: 0;                 
+  padding: 0;             
+  gap: 5px;          /* Відступ між сотами */
+  }
+.content {
+  flex-grow: 1;      /* Займає весь залишок висоти екрана */
+  overflow-y: auto;  /* вертикальна прокрутка */
+  }
+h1 {
+  font-size: 24px;
+  color: #D48C00;
+  margin: 0 10px;
+  font-weight: 700; /* жирне накреслення */
+  text-shadow: 2px 2px 4px rgba(117, 72, 0, 0.4); 
+  }
+
+.sota { 
+  display: inline-flex;
+  flex-shrink: 0;        /* елементи не стискаються */
+  align-items: center;
+  justify-content: center;
+  width: 86px;           /* 100/1,154≈86 для 6-кутника */
+  height: 100px;         
+  background-size: cover;
+  background-position: center;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  cursor: pointer;
+  transition: transform 0.3s ease, filter 0.3s ease;
+  }
+.sota:hover, button:hover{
+  transform: scale(1.05);
+  filter: brightness(85%);
+  }
+.s01 { background-image: url('p_med.jpg'); }
+.s02 { background-image: url('p_pilok.jpg'); }
+.s03 { background-image: url('p_prop.jpg'); }
+.s04 { background-image: url('p_vino.jpg'); }
+.s05 { background-image: url('p_visk.jpg'); }
+
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 180px;          
+  height: 35px; 
+  margin: 0 10px;
+  font-size: 12px;
+  font-weight: 700;     /* жирне накреслення */ 
+  flex-shrink: 0;       /* елементи не стискаються */
+  border: 1px solid #999;
+  }
+#cart-btn {       /* Кнопка кошика */ 
+  position: fixed;
+  top: 110px;
+  right: 20px;
+  }
+#cart-btn:disabled {
+  background-color: #eee;
+  color: #666;
+  cursor: not-allowed;
+  }
+#cart-btn.active {
+  background-color: #28a745;
+  color: #000;
+  cursor: pointer;
+  }
+.toggle-cart-btn.in-cart {  /*  Кнопка «Прибрати з кошика» */
+  background-color: #dc3545;
+  color: #000;
+  }
